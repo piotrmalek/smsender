@@ -1,0 +1,49 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Publish (win-x64, single-file, self-contained)
+        shell: pwsh
+        run: |
+          dotnet publish -c Release -r win-x64 --self-contained true `
+            /p:PublishSingleFile=true /p:PublishTrimmed=false
+
+      - name: Prepare README for package
+        shell: pwsh
+        run: |
+          $out = "bin\Release\net8.0-windows\win-x64\publish"
+          Copy-Item README.md "$out\README.txt"
+
+      - name: Package
+        shell: pwsh
+        run: |
+          $out = "bin\Release\net8.0-windows\win-x64\publish"
+          $zip = "smsender-win-x64.zip"
+          if (Test-Path $zip) { Remove-Item $zip }
+          Compress-Archive -Path "$out\*" -DestinationPath $zip
+          (Get-FileHash $zip -Algorithm SHA256).Hash + "  " + $zip | Out-File SHA256SUMS.txt -Encoding ascii
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            smsender-win-x64.zip
+            SHA256SUMS.txt
+            README.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
