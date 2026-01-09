@@ -87,6 +87,8 @@ smsender -s SCADA -p 48111111111 -p 48222222222 -m Critical fault - production s
 smsender -s Monitor -p 48111111111 -m Voltage drop -10% on phase L2
 ```
 
+![Command Line Example](docs/cmd-smsender-cli.png)
+
 ## 📟 Using smsender with Cimon SCADA
 
 `smsender` integrates seamlessly with **Cimon SCADA**, allowing SMS alarm notifications to be sent directly from scripts or object actions.
