@@ -87,6 +87,65 @@ smsender -s SCADA -p 48111111111 -p 48222222222 -m Critical fault - production s
 smsender -s Monitor -p 48111111111 -m Voltage drop -10% on phase L2
 ```
 
+## 📟 Using smsender with Cimon SCADA
+
+`smsender` integrates seamlessly with **Cimon SCADA**, allowing SMS alarm notifications to be sent directly from scripts or object actions.
+
+### Example 1: Script-based SMS (RunApp)
+
+```vb
+Sub SendSMS()
+    RunApp "D:\smsender.exe", "-s Monitor -p 48111111111 -m Pump P3.2 overheated"
+End Sub
+```
+
+Typical use cases:
+- alarm handling scripts
+- scheduled checks
+- conditional notifications
+
+![Cimon SCADA Script Example](docs/cimon-script.png)
+
+---
+
+### Example 2: Object Action (Touch / Button)
+
+`smsender` can also be triggered from an object action.
+
+**Command Expression example:**
+
+```text
+RunApp("D:\smsender.exe", "-s Alarm -p 48111111111 -m Emergency stop activated")
+```
+
+Typical use cases:
+- operator-triggered alarms
+- service notifications
+- maintenance actions
+
+![Cimon SCADA Object Configuration](docs/cimon-object-config.png)
+
+---
+
+### Recommended Build Variant for SCADA
+
+For SCADA and HMI environments, the **GUI (no-console) build** is recommended:
+
+- **GUI (no-console) build**: [smsender-win-x64-gui.zip](https://github.com/piotrmalek/smsender/releases/latest/download/smsender-win-x64-gui.zip)
+
+
+
+
+Advantages:
+- no command-line window popup
+- silent background execution
+- better operator experience
+
+The **CLI build** remains useful for:
+- diagnostics
+- scripting
+- command-line testing
+
 ---
 
 ## 📖 Command-line Options
@@ -142,3 +201,10 @@ These exit codes are suitable for:
 This project is licensed under the **MIT License**.
 
 Distributed as-is, without any warranty.
+
+---
+
+## Author
+
+**Piotr Małek**  
+GitHub: https://github.com/piotrmalek

@@ -7,9 +7,9 @@ on:
 
 jobs:
   build:
+    runs-on: windows-latest
     permissions:
       contents: write
-    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -19,32 +19,52 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      - name: Publish (win-x64, single-file, self-contained)
+      - name: Publish CLI (win-x64, single-file, self-contained)
         shell: pwsh
         run: |
-          dotnet publish -c Release -r win-x64 --self-contained true `
+          dotnet publish .\src\smsender-cli\smsender-cli.csproj `
+            -c Release -r win-x64 --self-contained true -o .\artifacts\cli `
             /p:PublishSingleFile=true /p:PublishTrimmed=false
 
-      - name: Prepare README for package
+      - name: Publish GUI (win-x64, single-file, self-contained)
         shell: pwsh
         run: |
-          $out = "bin\Release\net8.0-windows\win-x64\publish"
-          Copy-Item README.md "$out\README.txt"
+          dotnet publish .\src\smsender-gui\smsender-gui.csproj `
+            -c Release -r win-x64 --self-contained true -o .\artifacts\gui `
+            /p:PublishSingleFile=true /p:PublishTrimmed=false
 
-      - name: Package
+      - name: Add README to packages
         shell: pwsh
         run: |
-          $out = "bin\Release\net8.0-windows\win-x64\publish"
-          $zip = "smsender-win-x64.zip"
-          if (Test-Path $zip) { Remove-Item $zip }
-          Compress-Archive -Path "$out\*" -DestinationPath $zip
-          (Get-FileHash $zip -Algorithm SHA256).Hash + "  " + $zip | Out-File SHA256SUMS.txt -Encoding ascii
+          Copy-Item README.md ".\artifacts\cli\README.txt"
+          Copy-Item README.md ".\artifacts\gui\README.txt"
+
+      - name: Package ZIP + SHA256
+        shell: pwsh
+        run: |
+          $cliZip = "smsender-win-x64-cli.zip"
+          $guiZip = "smsender-win-x64-gui.zip"
+
+          if (Test-Path $cliZip) { Remove-Item $cliZip }
+          if (Test-Path $guiZip) { Remove-Item $guiZip }
+
+          Compress-Archive -Path ".\artifacts\cli\*" -DestinationPath $cliZip
+          Compress-Archive -Path ".\artifacts\gui\*" -DestinationPath $guiZip
+
+          $cliHash = (Get-FileHash $cliZip -Algorithm SHA256).Hash
+          $guiHash = (Get-FileHash $guiZip -Algorithm SHA256).Hash
+
+          @(
+            "$cliHash  $cliZip",
+            "$guiHash  $guiZip"
+          ) | Out-File SHA256SUMS.txt -Encoding ascii
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            smsender-win-x64.zip
+            smsender-win-x64-cli.zip
+            smsender-win-x64-gui.zip
             SHA256SUMS.txt
             README.md
         env:

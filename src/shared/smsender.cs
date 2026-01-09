@@ -19,7 +19,7 @@ Key features:
 - Support for multiple recipients (-p can be used multiple times)
 - Free-form message text (-m) with full support for '-' characters
 - Secure storage of API tokens using Windows DPAPI
-  (CurrentUser or LocalMachine scope)
+ (CurrentUser or LocalMachine scope)
 - Clear, color-coded console output for errors, warnings, and status messages
 - Consistent exit codes suitable for scripting and automation
 - Masking of sensitive data (API token) in console output
@@ -45,16 +45,16 @@ Typical use cases:
 
 Security notes:
 - API tokens are encrypted using Windows DPAPI and are bound to the selected
-  security scope (CurrentUser or LocalMachine).
+ security scope (CurrentUser or LocalMachine).
 - Encrypted token files cannot be decrypted on another machine or under a
-  different user account.
+ different user account.
 - API tokens are never printed in full; console output shows masked values only.
 
 Notes:
 - Phone number validation is intentionally minimal; final validation is
-  performed by the SMSAPI service.
+ performed by the SMSAPI service.
 - Message parsing stops only on recognized flags, allowing messages such as
-  "-10% voltage drop" without issues.
+ "-10% voltage drop" without issues.
 - Console colors are automatically disabled when output is redirected.
 
 License:
@@ -62,8 +62,6 @@ This software is distributed under the MIT License.
 
 Distributed as-is; no warranty is given.
 ******************************************************************************/
-
-
 
 using System.Security.Cryptography;
 using System.Text;
@@ -73,7 +71,7 @@ namespace smsender
 {
     internal class Sender
     {
-        
+
         static String token_path = AppDomain.CurrentDomain.BaseDirectory + "token.dat";
 
         static string help_msg =
@@ -88,12 +86,12 @@ Examples:
         static void SaveToken(string path, string token, bool scope_machine = false)
         {
             DataProtectionScope scope = DataProtectionScope.CurrentUser;
-            if (scope_machine) scope = DataProtectionScope.LocalMachine; 
+            if (scope_machine) scope = DataProtectionScope.LocalMachine;
             byte[] data = Encoding.UTF8.GetBytes(token);
             byte[] protectedData = ProtectedData.Protect(
                 data,
                 optionalEntropy: null, // here you can add your own "salt"
-                scope: scope 
+                scope: scope
             );
 
             File.WriteAllBytes(path, protectedData);
@@ -185,7 +183,7 @@ Examples:
                         if (SMStoken.Length < 10) throw new ArgumentException("Token looks too short");
                         SaveToken(token_path, SMStoken);
                         tokenFromArgs = true;
-                        continue;                        
+                        continue;
                     }
                     if (arg.Equals("-tm", StringComparison.OrdinalIgnoreCase))
                     {
@@ -219,7 +217,7 @@ Examples:
 
                         while (i + 1 < args.Length && !flags.Contains(args[i + 1]))
                         {
-                            parts.Add(args[++i]); 
+                            parts.Add(args[++i]);
                         }
 
                         // allow multiple -m (append)
@@ -300,7 +298,7 @@ Examples:
                     string temptoken = SMStoken.Length <= 3 ? SMStoken : SMStoken[..3] + new string('*', SMStoken.Length - 3);
 
                     string phones = string.Join(",", SMSphones);
-                    
+
                     SMSmessage = SMSmessage.Trim();
 
                     PrintMessage($"Sending SMS...", MessageType.INFO);
@@ -321,7 +319,7 @@ Examples:
                             .Execute();
 
                     PrintMessage("Message sent.", MessageType.SUCCESS);
-                } 
+                }
             }
             catch (ActionException e)
             {
